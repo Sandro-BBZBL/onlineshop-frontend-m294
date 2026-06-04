@@ -19,11 +19,11 @@ if (environment.production) {
 }
 
 export const authConfig: AuthConfig = {
-  issuer: 'http://localhost:8080/realms/ILV',
+  issuer: 'http://localhost:8080/realms/onlineshop',
   requireHttps: false,
   redirectUri: environment.frontendBaseUrl,
   postLogoutRedirectUri: environment.frontendBaseUrl,
-  clientId: 'demoapp',
+  clientId: 'onlineshop-client',
   scope: 'openid profile roles offline_access',
   responseType: 'code',
   showDebugInformation: true,
