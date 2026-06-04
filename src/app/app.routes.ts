@@ -7,7 +7,7 @@ import {VehicleUsageListComponent} from './pages/vehicle-usage-list/vehicle-usag
 import {DashboardComponent} from './pages/dashboard/dashboard.component';
 import {NoAccessComponent} from './pages/no-access/no-access.component';
 import {VehicleDetailComponent} from './pages/vehicle-detail/vehicle-detail.component';
-import {AppRoles} from '../app.roles';
+import   {AppRoles} from '../app.roles';
 import {DepartmentDetailComponent} from './pages/department-detail/department-detail.component';
 import {EmployeeDetailComponent} from './pages/employee-detail/employee-detail.component';
 import {VehicleUsageDetailComponent} from './pages/vehicle-usage-detail/vehicle-usage-detail.component';
