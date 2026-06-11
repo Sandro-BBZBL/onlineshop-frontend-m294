@@ -5,11 +5,9 @@ import { AppAuthService } from '../../service/app.auth.service';
 import { Order } from '../../dataaccess/order'; 
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
-import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { BaseComponent } from '../../components/base/base.component';
 import { IsInRoleDirective } from '../../dir/is.in.role.dir';
 import { MatToolbar } from '@angular/material/toolbar';
@@ -45,14 +43,13 @@ import { DecimalPipe, DatePipe, CommonModule } from '@angular/common';
   ]
 })
 export class OrderHistoryComponent extends BaseComponent implements OnInit, AfterViewInit {
-  private dialog = inject(MatDialog);
   private headerService = inject(HeaderService);
   private orderService = inject(OrderService); 
   private authService = inject(AppAuthService); 
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
-  columns = ['id', 'orderDate', 'totalPrice', 'actions'];
+  columns = ['id', 'orderDate', 'totalPrice'];
   orderDataSource = new MatTableDataSource<Order>();
   
   @ViewChild(MatPaginator) paginator?: MatPaginator;
@@ -87,9 +84,7 @@ export class OrderHistoryComponent extends BaseComponent implements OnInit, Afte
 
     this.orderService.getOrdersByUsername(username).subscribe({
       next: (orders) => {
-        // NEU: Loggt das Ergebnis direkt in die Browser-Konsole (F12)
         console.log('Backend-Antwort für User "' + username + '":', orders);
-        
         this.orderDataSource.data = orders;
       },
       error: (err) => {
@@ -101,30 +96,5 @@ export class OrderHistoryComponent extends BaseComponent implements OnInit, Afte
 
   viewDetails(order: Order): void {
     this.router.navigate(['/orders', order.id]);
-  }
-
-  delete(order: Order) {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      maxWidth: '400px',
-      data: {
-        title: 'dialogs.title_delete',
-        message: 'Möchtest du diese Bestellung wirklich stornieren?'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(dialogResult => {
-      if (dialogResult === true && order.id) {
-        this.orderService.delete(order.id).subscribe({
-          next: () => {
-            this.snackBar.open('Bestellung erfolgreich storniert.', 'Schließen', { duration: 3000 });
-            this.reloadData(); 
-          },
-          error: (err) => {
-            console.error('Fehler beim Stornieren:', err);
-            this.snackBar.open('Stornierung fehlgeschlagen.', 'Schließen', { duration: 4000 });
-          }
-        });
-      }
-    });
   }
 }
