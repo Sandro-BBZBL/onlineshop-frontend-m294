@@ -1,9 +1,12 @@
-<div style="padding: 16px; background-color: rgba(244, 67, 54, 0.1); border-left: 4px solid #f44336; border-radius: 4px; margin-bottom: 20px;">
-  <h3 style="color: #f44336; margin-top: 0;">Lagerbestand Warnung</h3>
-  
-  @if (lowStockProducts.length === 0) {
-    <p style="color: #ddd;">Aktuell sind alle Produkte ausreichend auf Lager.</p>
-  } @else {
-    <p style="color: #ddd;">Einige Produkte müssen nachbestellt werden!</p>
-  }
+<div *ngIf="lowStockProducts.length > 0" 
+     style="background: #7a1c1c; border: 1px solid #f44336; border-radius: 8px; padding: 16px; color: #fff; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: bold;">
+    <mat-icon style="color: #f44336;">warning</mat-icon>
+    <span>{{ 'admin.dashboard.low_stock_warning' | translate }}</span>
+  </div>
+  <ul style="margin: 0; padding-left: 20px;">
+    <li *ngFor="let item of lowStockProducts" style="margin-bottom: 4px;">
+      {{ item.name }} ({{ 'admin.dashboard.remaining' | translate }}: {{ item.bestand }} Stk.)
+    </li>
+  </ul>
 </div>

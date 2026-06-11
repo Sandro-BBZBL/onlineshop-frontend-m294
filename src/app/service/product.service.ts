@@ -34,4 +34,9 @@ export class ProductService {
   getList(): Observable<Product[]> {
     return this.http.get<Product[]>(`${this.apiUrl}/products`);
   }
+
+  // HIER IST DER FIX: this.apiUrl wurde hinzugefügt, damit es an Port 8081 geht!
+  public deleteProduct(id: number) {
+    return this.http.delete(`${this.apiUrl}/products/${id}`); 
+  }
 }

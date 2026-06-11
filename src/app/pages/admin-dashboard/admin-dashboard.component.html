@@ -1,4 +1,18 @@
-<div style="padding: 24px; color: #fff;">
-  <h2>Admin Dashboard</h2>
-  <p>Hier kommt bald die Statistik und Übersicht für dich als Admin rein.</p>
+<mat-toolbar style="background: #1e1e1e; color: #fff;">
+  <span>{{ 'admin.dashboard.title' | translate }}</span>
+</mat-toolbar>
+
+<div style="padding: 24px; display: flex; flex-direction: column; gap: 24px;">
+  
+  <app-inventory-warning [products]="products"></app-inventory-warning>
+
+  <div style="background: #2a2a2a; border-radius: 8px; padding: 16px;">
+    <h3 style="color: #fff; margin-top: 0; margin-bottom: 16px;">{{ 'admin.dashboard.products_overview' | translate }}</h3>
+    
+    <app-product-list 
+      [products]="products" 
+      (productChanged)="onProductChanged()">
+    </app-product-list>
+  </div>
+
 </div>

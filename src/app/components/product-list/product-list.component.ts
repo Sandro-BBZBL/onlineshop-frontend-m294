@@ -1,79 +1,50 @@
-import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
-import { HeaderService } from '../../service/header.service';
-import { Router } from '@angular/router';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component'; // Pfad angepasst
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
-import { BaseComponent } from '../base/base.component'; // Pfad angepasst
-import { IsInRoleDirective } from '../../dir/is.in.role.dir';
-import { MatToolbar } from '@angular/material/toolbar';
-import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { Router } from '@angular/router';
+
+import { Product } from '../../dataaccess/product';
+import { ProductService } from '../../service/product.service';
 
 @Component({
-  selector: 'app-product-list', // Exakt angepasst
-  templateUrl: './product-list.component.html', // Verweist auf dein neues HTML
-  styleUrls: ['./product-list.component.scss'], // Verweist auf dein neues SCSS
-  imports: [IsInRoleDirective, MatToolbar, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, TranslateModule]
+  selector: 'app-product-list',
+  standalone: true,
+  templateUrl: './product-list.component.html',
+  styleUrls: ['./product-list.component.scss'],
+  imports: [
+    CommonModule, 
+    MatButtonModule, 
+    MatIconModule, 
+    TranslateModule
+  ]
 })
-export class ProductListComponent extends BaseComponent implements OnInit, AfterViewInit {
-  private dialog = inject(MatDialog);
-  private headerService = inject(HeaderService);
+export class ProductListComponent {
+  private productService = inject(ProductService);
   private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
 
-  // Die Datenstrukturen belassen wir vorerst strukturell identisch, damit es kompiliert.
-  // Das Datenmodell für deine Produkte binden wir ein, sobald die Services bereitstehen.
-  dataSource = new MatTableDataSource<any>();
-  @ViewChild(MatPaginator) paginator?: MatPaginator;
+  @Input() public products: Product[] = [];
+  
+  @Output() public productChanged = new EventEmitter<void>();
 
-  columns = ['name', 'price', 'stock', 'actions']; // Spalten für Kleidung vorbereitet
-
-  public constructor() {
-    super();
-    // Header-Zuweisung entfernt, das machen jetzt die übergeordneten Pages!
+  public editProduct(id: number): void {
+    this.router.navigate(['/admin/product-form', id]);
   }
 
-  async ngOnInit() {
-    await this.reloadData();
-  }
+  public deleteProduct(id: number): void {
+    if (confirm('Möchtest du dieses Produkt wirklich löschen?')) {
+      
+      // HIER KORRIGIERT: Kein "as any" mehr und wir rufen die echte Methode auf
+      this.productService.deleteProduct(id).subscribe({
+        next: () => {
+          this.productChanged.emit();
+        },
+        error: (err: any) => {
+          console.error('Fehler beim Löschen des Produkts', err);
+        }
+      });
 
-  ngAfterViewInit() {
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
     }
-  }
-
-  async reloadData() {
-    // Hier wird später die API-Anbindung für deine Produkte implementiert
-  }
-
-  async edit(e: any) {
-    // Navigiert später zum Admin-Formular mit der Produkt-ID
-    await this.router.navigate(['admin/product-form', e.id]);
-  }
-
-  async add() {
-    // Navigiert später zum leeren Admin-Formular
-    await this.router.navigate(['admin/product-form']);
-  }
-
-  delete(e: any) {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      maxWidth: '400px',
-      data: {
-        title: 'dialogs.title_delete',
-        message: 'dialogs.message_delete'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(dialogResult => {
-      if (dialogResult === true) {
-        // Löschlogik wird mit dem Produkt-Service verbunden
-      }
-    });
   }
 }
