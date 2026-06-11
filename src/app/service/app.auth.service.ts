@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import {JwtHelperService} from '@auth0/angular-jwt';
-import {AuthConfig, OAuthErrorEvent, OAuthService} from 'angular-oauth2-oidc';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { AuthConfig, OAuthErrorEvent, OAuthService } from 'angular-oauth2-oidc';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -44,17 +44,33 @@ export class AppAuthService {
     });
   }
 
+  /**
+   * Liest die Rollen aus dem JWT Token für die echte ID 'onlineshop-client' aus.
+   */
   public getRoles(): Observable<Array<string>> {
-    if (this._decodedAccessToken !== null) {
+    if (this._decodedAccessToken !== null && this._decodedAccessToken !== undefined) {
       return new Observable<Array<string>>(observer => {
-        if (this._decodedAccessToken.resource_access.demoapp.roles) {
-          if (Array.isArray(this._decodedAccessToken.resource_access.demoapp.roles)) {
-            const resultArr = this._decodedAccessToken.resource_access.demoapp.roles.map((r: string) => r.replace('ROLE_', ''));
+        // Greift direkt und sicher auf deine echte Projekt-ID 'onlineshop-client' zu
+        const clientAccess = this._decodedAccessToken?.resource_access?.['onlineshop-client'];
+        
+        if (clientAccess && clientAccess.roles) {
+          if (Array.isArray(clientAccess.roles)) {
+            const resultArr = clientAccess.roles.map((r: string) => r.replace('ROLE_', ''));
             observer.next(resultArr);
           } else {
-            observer.next([this._decodedAccessToken.resource_access.demoapp.roles.replace('ROLE_', '')]);
+            observer.next([clientAccess.roles.replace('ROLE_', '')]);
+          }
+        } else {
+          // Sicherer Fallback: Falls Rollen global im Realm definiert sind
+          const realmRoles = this._decodedAccessToken?.realm_access?.roles;
+          if (realmRoles && Array.isArray(realmRoles)) {
+            const resultArr = realmRoles.map((r: string) => r.replace('ROLE_', ''));
+            observer.next(resultArr);
+          } else {
+            observer.next([]);
           }
         }
+        observer.complete();
       });
     }
     return of([]);
@@ -68,6 +84,9 @@ export class AppAuthService {
     this.oauthService.logOut();
     this.useraliasSubject.next('');
     this.usernameSubject.next('');
+    this.accessTokenSubject.next('');
+    this._accessToken = '';
+    this._decodedAccessToken = null;
   }
 
   public login() {

@@ -1,11 +1,23 @@
-@if (useralias !== '') {
-  <div style="font-weight: bold">
-    {{ 'dashboard.welcome' | translate:{username: username, useralias: useralias} }}
-  <!--div [innerHTML]="'dashboard.welcome' | translate: {username: username, useralias: useralias}"></div-->
+<app-navbar></app-navbar>
+
+<div class="shop-container">
+  <h1 class="shop-title">Unsere Kollektion</h1>
+
+  @if (loading()) {
+    <div class="loading-placeholder">Lade Produkte...</div>
+  } @else {
+    <div class="product-grid">
+      @for (product of products(); track product.id) {
+        
+        <app-product-card [product]="product">
+          
+          <button mat-raised-button [routerLink]="['/shop/product', product.id]" color="primary" style="width: 100%;">
+            <mat-icon>visibility</mat-icon> Details & Bestellen
+          </button>
+          
+        </app-product-card>
+
+      }
+    </div>
+  }
 </div>
-}
-@if (!useralias || useralias === '') {
-  <div>
-    <app-login></app-login>
-  </div>
-}

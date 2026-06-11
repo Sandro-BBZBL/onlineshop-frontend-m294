@@ -2,44 +2,65 @@
   <div>
     <mat-toolbar color="primary">
       <mat-toolbar-row>
-        <span class="toolbar-spacer"></span>
         <button (click)="back()" color="primary" mat-button style="color: white">
           <mat-icon>arrow_back_ios</mat-icon>
-          {{ 'main.button_back' | translate }}
+          Zurück zum Shop
         </button>
+        <span class="toolbar-spacer"></span>
       </mat-toolbar-row>
     </mat-toolbar>
   </div>
-  <div class="app-form">
-    <form (ngSubmit)="save(objForm.value)" [formGroup]="objForm!">
-      <mat-form-field>
-        <mat-label>{{ 'employee.badge' | translate }}</mat-label>
-        <input #inputBadge appAutofocus formControlName="badge" matInput maxlength="20" required>
-        <mat-hint align="end">{{inputBadge.value.length || 0}}/20</mat-hint>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'employee.name' | translate }}</mat-label>
-        <input #inputName formControlName="name" matInput maxlength="100" required>
-        <mat-hint align="end">{{inputName.value.length || 0}}/100</mat-hint>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'employee.firstname' | translate }}</mat-label>
-        <input #inputFirstname formControlName="firstname" matInput maxlength="100" required>
-        <mat-hint align="end">{{inputFirstname.value.length || 0}}/100</mat-hint>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'employee.department' | translate }}</mat-label>
-        <mat-select formControlName="departmentId" required>
-          @for (department of departments; track department) {
-            <mat-option [value]="department.id">
-              {{department.name}}
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <button [disabled]="!objForm.valid" color="primary" mat-raised-button style="width: 200px">
-        {{ 'main.button_save' | translate }}
-      </button>
-    </form>
-  </div>
+
+  @if (product) {
+    <div class="app-form" style="padding: 24px; max-width: 600px; margin: 0 auto;">
+      <div style="background: #2a2a2a; border-radius: 8px; padding: 24px; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        
+        <h2 style="font-size: 2rem; margin-bottom: 8px; color: #ff4081;">{{ product.name }}</h2>
+        <p style="font-size: 1.1rem; color: #bbb; margin-bottom: 24px;">
+          Kategorie: <strong style="color: white;">{{ product.category?.name || 'Allgemein' }}</strong>
+        </p>
+
+        <hr style="border: 0; border-top: 1px solid #444; margin-bottom: 24px;">
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 32px;">
+          <div>
+            <span style="color: #bbb; display: block; font-size: 0.9rem; text-transform: uppercase;">Preis</span>
+            <span style="font-size: 1.8rem; font-weight: bold; color: #4caf50;">CHF {{ product.preis }}</span>
+          </div>
+          <div style="text-align: right;">
+            <span style="color: #bbb; display: block; font-size: 0.9rem; text-transform: uppercase;">Verfügbarkeit</span>
+            <span style="font-size: 1.2rem;" [style.color]="(product.bestand || 0) > 0 ? '#4caf50' : '#f44336'">
+              {{ (product.bestand || 0) > 0 ? product.bestand + ' Stück an Lager' : 'Ausverkauft' }}
+            </span>
+          </div>
+        </div>
+
+        @if ((product.bestand || 0) > 0) {
+          <form [formGroup]="objForm" (ngSubmit)="orderProduct()">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              
+              <mat-form-field style="width: 120px;">
+                <mat-label>Menge</mat-label>
+                <input matInput type="number" formControlName="quantity" min="1" [max]="product.bestand || 0" required>
+              </mat-form-field>
+
+              <button type="submit" [disabled]="!objForm.valid" color="accent" mat-raised-button style="height: 54px; flex-grow: 1; font-size: 1.1rem;">
+                <mat-icon>shopping_cart</mat-icon> Jetzt bestellen
+              </button>
+              
+            </div>
+          </form>
+        } @else {
+          <div style="background: #f4433622; border: 1px solid #f44336; padding: 16px; border-radius: 4px; text-align: center; color: #f44336;">
+            Dieses Produkt ist aktuell leider vergriffen und kann nicht bestellt werden.
+          </div>
+        }
+
+      </div>
+    </div>
+  } @else {
+    <div style="text-align: center; padding: 48px; color: white;">
+      <h3>Produktdetails werden geladen...</h3>
+    </div>
+  }
 </div>

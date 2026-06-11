@@ -1,50 +1,52 @@
-import {inject} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, RouterStateSnapshot} from '@angular/router';
-import {OAuthService} from 'angular-oauth2-oidc';
-import {AppAuthService} from '../service/app.auth.service';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { AppAuthService } from '../service/app.auth.service';
+import { map, of } from 'rxjs';
 
 export const appCanActivate: CanActivateFn = (
   route: ActivatedRouteSnapshot,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   state: RouterStateSnapshot
 ) => {
   const authService: AppAuthService = inject(AppAuthService);
   const oauthService: OAuthService = inject(OAuthService);
   const router = inject(Router);
 
-  let userRoles: string[] = [];
-
-  authService.getRoles().subscribe(roles => {
-    userRoles = roles;
-  });
-
-  if (oauthService.hasValidAccessToken()) {
-    const hasRoles = checkRoles(route, userRoles);
-    if (!hasRoles) {
-      return router.parseUrl('/noaccess');
-    }
-    return hasRoles;
-  }
-  return router.parseUrl('/noaccess');
-};
-
-function checkRoles(route: ActivatedRouteSnapshot, userRoles: string[]): boolean {
-  const roles = route.data['roles'] as Array<string>;
-
-  if (roles === undefined || roles === null || roles.length === 0) {
-    return true;
+  // 1. Zuerst prüfen, ob überhaupt ein gültiges Login-Token existiert
+  if (!oauthService.hasValidAccessToken()) {
+    return router.parseUrl('/noaccess');
   }
 
-  if (userRoles === undefined) {
-    return false;
-  }
+  // 2. Wir geben den Datenstrom (Observable) direkt zurück. 
+  // Angular wartet nun automatisch, bis die Rollen eingetroffen sind!
+  return authService.getRoles().pipe(
+    map(userRoles => {
+      console.log('Guard prüft Berechtigung mit folgenden User-Rollen:', userRoles);
+      
+      // EIN ADMIN DARF ALLES: Wenn der User die 'admin'-Rolle besitzt, lassen wir ihn immer durch
+      if (userRoles.includes('admin')) {
+        return true;
+      }
 
-  for (const role of roles) {
-    if (userRoles.indexOf(role) > -1) {
+      // Rollen abholen, die für diese spezifische Route gefordert sind
+      const requiredRoles = route.data['roles'] as Array<string>;
+
+      // Wenn die Route gar keine speziellen Rollen verlangt, darf jeder eingeloggte User rein
+      if (!requiredRoles || requiredRoles.length === 0) {
+        return true;
+      }
+
+      // Prüfen, ob der normale User mindestens eine der geforderten Rollen besitzt
+      const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
+
+      if (!hasRequiredRole) {
+        console.warn(`Zugriff verweigert! Erwartet wurde eine von: ${requiredRoles}. User hat: ${userRoles}`);
+        return router.parseUrl('/noaccess');
+      }
+
       return true;
-    }
-  }
-  return false;
-}
+    })
+  );
+};
 
 export const appCanActivateChild: CanActivateChildFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => appCanActivate(route, state);

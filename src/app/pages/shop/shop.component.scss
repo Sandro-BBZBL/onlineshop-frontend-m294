@@ -1,0 +1,104 @@
+.shop-container {
+  padding: 24px;
+  max-height: 100%;
+  overflow-y: auto;
+  background-color: #121212;
+}
+
+.shop-title {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  margin-bottom: 32px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
+  padding-bottom: 40px;
+}
+
+.product-card {
+  background-color: #1e1e1e !important; // Leicht aufgehelltes Anthrazit für Cards
+  border: 1px solid #2d2d2d;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5);
+    border-color: #ffc107; // Sanfter Gold-Rand beim Hovern
+  }
+}
+
+.product-image {
+  height: 240px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  filter: brightness(0.9); // Passt Bilder besser in den Darkmode ein
+}
+
+.product-description {
+  margin: 16px 0;
+  color: #b3b3b3;
+  font-size: 14px;
+  line-height: 1.5;
+  height: 42px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffc107; // Luxuriöses Amber-Gold für den Preis
+}
+
+.stock-chip {
+  font-size: 11px;
+  font-weight: bold;
+  
+  &.available {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+    color: #4caf50 !important;
+  }
+  &.sold-out {
+    background-color: rgba(244, 67, 54, 0.15) !important;
+    color: #f44336 !important;
+  }
+}
+
+.loading-placeholder {
+  text-align: center;
+  padding: 80px;
+  font-size: 18px;
+  color: #888;
+}
+
+mat-card-title {
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+}
+
+mat-card-subtitle {
+  color: #888888 !important;
+}

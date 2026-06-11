@@ -1,43 +1,40 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import {Vehicle} from '../../dataaccess/vehicle';
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
-import {MatPaginator} from '@angular/material/paginator';
-import {HeaderService} from '../../service/header.service';
-import {Router} from '@angular/router';
-import {ConfirmDialogComponent} from '../../components/confirm-dialog/confirm-dialog.component';
-import {MatDialog} from '@angular/material/dialog';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatPaginator } from '@angular/material/paginator';
+import { HeaderService } from '../../service/header.service';
+import { Router } from '@angular/router';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component'; // Pfad angepasst
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
-import {BaseComponent} from '../../components/base/base.component';
-import {VehicleService} from '../../service/vehicle.service';
+import { BaseComponent } from '../base/base.component'; // Pfad angepasst
 import { IsInRoleDirective } from '../../dir/is.in.role.dir';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
-
 @Component({
-    selector: 'app-vehicle-list',
-    templateUrl: './vehicle-list.component.html',
-    styleUrls: ['./vehicle-list.component.scss'],
-    imports: [IsInRoleDirective, MatToolbar, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, TranslateModule]
+  selector: 'app-product-list', // Exakt angepasst
+  templateUrl: './product-list.component.html', // Verweist auf dein neues HTML
+  styleUrls: ['./product-list.component.scss'], // Verweist auf dein neues SCSS
+  imports: [IsInRoleDirective, MatToolbar, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, TranslateModule]
 })
-export class VehicleListComponent extends BaseComponent implements OnInit, AfterViewInit {
-  private vehicleService = inject(VehicleService);
+export class ProductListComponent extends BaseComponent implements OnInit, AfterViewInit {
   private dialog = inject(MatDialog);
   private headerService = inject(HeaderService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
 
-  vehicleDataSource = new MatTableDataSource<Vehicle>();
+  // Die Datenstrukturen belassen wir vorerst strukturell identisch, damit es kompiliert.
+  // Das Datenmodell für deine Produkte binden wir ein, sobald die Services bereitstehen.
+  dataSource = new MatTableDataSource<any>();
   @ViewChild(MatPaginator) paginator?: MatPaginator;
 
-  columns = ['vehicleType', 'licence', 'description', 'actions'];
+  columns = ['name', 'price', 'stock', 'actions']; // Spalten für Kleidung vorbereitet
 
   public constructor() {
     super();
-
-    this.headerService.setPage('nav.vehicles');
+    // Header-Zuweisung entfernt, das machen jetzt die übergeordneten Pages!
   }
 
   async ngOnInit() {
@@ -46,25 +43,25 @@ export class VehicleListComponent extends BaseComponent implements OnInit, After
 
   ngAfterViewInit() {
     if (this.paginator) {
-      this.vehicleDataSource.paginator = this.paginator;
+      this.dataSource.paginator = this.paginator;
     }
   }
 
-  reloadData() {
-    this.vehicleService.getList().subscribe(obj => {
-      this.vehicleDataSource.data = obj;
-    });
+  async reloadData() {
+    // Hier wird später die API-Anbindung für deine Produkte implementiert
   }
 
-  async edit(e: Vehicle) {
-    await this.router.navigate(['vehicle', e.id]);
+  async edit(e: any) {
+    // Navigiert später zum Admin-Formular mit der Produkt-ID
+    await this.router.navigate(['admin/product-form', e.id]);
   }
 
   async add() {
-    await this.router.navigate(['vehicle']);
+    // Navigiert später zum leeren Admin-Formular
+    await this.router.navigate(['admin/product-form']);
   }
 
-  delete(e: Vehicle) {
+  delete(e: any) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       maxWidth: '400px',
       data: {
@@ -75,17 +72,7 @@ export class VehicleListComponent extends BaseComponent implements OnInit, After
 
     dialogRef.afterClosed().subscribe(dialogResult => {
       if (dialogResult === true) {
-        this.vehicleService.delete(e.id).subscribe({
-          next: response => {
-            if (response.status === 200) {
-              this.snackBar.open(this.deletedMessage, this.closeMessage, {duration: 5000});
-              this.reloadData();
-            } else {
-              this.snackBar.open(this.deleteErrorMessage, this.closeMessage, {duration: 5000});
-            }
-          },
-          error: () => this.snackBar.open(this.deleteErrorMessage, this.closeMessage, {duration: 5000})
-        });
+        // Löschlogik wird mit dem Produkt-Service verbunden
       }
     });
   }

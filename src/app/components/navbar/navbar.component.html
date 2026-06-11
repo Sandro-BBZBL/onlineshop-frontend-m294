@@ -1,7 +1,29 @@
-<span style="font-weight: bold; position: absolute; height: 48px; line-height: 48px;">
-  M294 Demo App @if (currentPage !== '') {
-  <span
-  style="color: red;font-weight: bold">- {{currentPage | translate}}</span>
-}
-</span>
+<div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 24px; background-color: #1a1a1a; height: 64px; line-height: 64px; border-bottom: 1px solid #2d2d2d; box-sizing: border-box;">
+  
+  <div style="color: #fff; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center;">
+    <span routerLink="/shop" style="cursor: pointer;">M294 Online Shop</span>
+  </div>
 
+  <div style="display: flex; gap: 28px; align-items: center;">
+    <a routerLink="/shop" style="color: #e0e0e0; text-decoration: none; font-weight: 500; font-size: 0.95rem; cursor: pointer;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#e0e0e0'">Kollektion</a>
+    <a routerLink="/order-history" style="color: #e0e0e0; text-decoration: none; font-weight: 500; font-size: 0.95rem; cursor: pointer;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#e0e0e0'">Bestellverlauf</a>
+    
+    @if (isAdmin) {
+      <a routerLink="/admin/dashboard" style="color: #e0e0e0; text-decoration: none; font-weight: 500; font-size: 0.95rem; cursor: pointer;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#e0e0e0'">Admin-Bereich</a>
+      <a routerLink="/admin/product-form" style="color: #e0e0e0; text-decoration: none; font-weight: 500; font-size: 0.95rem; cursor: pointer;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#e0e0e0'">Produkt erfassen</a>
+    }
+  </div>
+
+  <div style="display: flex; align-items: center;">
+    @if (isLoggedIn) {
+      <button mat-flat-button color="warn" style="font-weight: bold; cursor: pointer;" (click)="authService.logout()">
+        Abmelden
+      </button>
+    } @else {
+      <button mat-flat-button style="font-weight: bold; background-color: #64ffda; color: #121212; cursor: pointer;" (click)="authService.login()">
+        Anmelden
+      </button>
+    }
+  </div>
+
+</div>

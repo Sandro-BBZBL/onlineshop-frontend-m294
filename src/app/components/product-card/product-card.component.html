@@ -1,73 +1,31 @@
-<div>
-  <div>
-    <mat-toolbar color="primary">
-      <mat-toolbar-row>
-        <span class="toolbar-spacer"></span>
-        <button (click)="back()" color="primary" mat-button style="color: white">
-          <mat-icon>arrow_back_ios</mat-icon>
-          {{ 'main.button_back' | translate }}
-        </button>
-      </mat-toolbar-row>
-    </mat-toolbar>
-  </div>
-  <div class="app-form">
-    <form (ngSubmit)="save(objForm.value)" [formGroup]="objForm!">
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.fromDate' | translate }}</mat-label>
-        <input [matDatepicker]="pickerFromDate" appAutofocus formControlName="fromDate" matInput required>
-        <mat-datepicker-toggle [for]="pickerFromDate" matSuffix></mat-datepicker-toggle>
-        <mat-datepicker #pickerFromDate></mat-datepicker>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.toDate' | translate }}</mat-label>
-        <input [matDatepicker]="pickerToDate" formControlName="toDate" matInput required>
-        <mat-datepicker-toggle [for]="pickerToDate" matSuffix></mat-datepicker-toggle>
-        <mat-datepicker #pickerToDate></mat-datepicker>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.fromLocation' | translate }}</mat-label>
-        <input #inputFromLocation formControlName="fromLocation" matInput maxlength="100" required>
-        <mat-hint align="end">{{inputFromLocation.value.length || 0}}/100</mat-hint>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.toLocation' | translate }}</mat-label>
-        <input #inputToLocation formControlName="toLocation" matInput maxlength="100" required>
-        <mat-hint align="end">{{inputToLocation.value.length || 0}}/100</mat-hint>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.km' | translate }}</mat-label>
-        <input formControlName="km" matInput pattern="^\d*(\.\d{0,2})?$" required>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.vehicle' | translate }}</mat-label>
-        <mat-select form formControlName="vehicleId" required>
-          @for (vehicle of vehicles; track vehicle) {
-            <mat-option [value]="vehicle.id">
-              {{vehicle.licence}}
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.employee' | translate }}</mat-label>
-        <mat-select formControlName="employeeId" required>
-          @for (employee of employees; track employee) {
-            <mat-option [value]="employee.id">
-              {{employee.badge}} - {{employee.firstname}}&nbsp;{{employee.name}}
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>{{ 'vehicleUsage.text' | translate }}</mat-label>
-        <textarea #inputText cdkAutosizeMaxRows="10"
-          cdkAutosizeMinRows="4"
-        cdkTextareaAutosize formControlName="text" matInput maxlength="500"></textarea>
-        <mat-hint align="end">{{inputText.value.length || 0}}/255</mat-hint>
-      </mat-form-field>
-      <button [disabled]="!objForm.valid" color="primary" mat-raised-button style="width: 200px">
-        {{ 'main.button_save' | translate }}
-      </button>
-    </form>
-  </div>
-</div>
+<mat-card class="product-card" style="background: #2a2a2a; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); height: 100%; display: flex; flex-direction: column;">
+  
+  <img mat-card-image [src]="'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&q=80'" [alt]="product.name" style="width: 100%; max-height: 300px; object-fit: cover;">
+  
+  <mat-card-header style="padding: 16px 16px 0 16px;">
+    <mat-card-title style="font-size: 1.5rem; color: #ff4081;">{{ product.name }}</mat-card-title>
+    <mat-card-subtitle style="color: #bbb; margin-top: 4px;">
+      Kategorie: <strong style="color: white;">{{ product.category?.name || 'Allgemein' }}</strong>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content style="padding: 16px; flex-grow: 1;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+      <span style="font-size: 1.4rem; font-weight: bold; color: #4caf50;">CHF {{ product.preis }}</span>
+      
+      @if ((product.bestand || 0) > 0) {
+        <mat-chip style="background-color: #2e7d32; color: white; font-weight: bold;">
+          Auf Lager ({{ product.bestand }})
+        </mat-chip>
+      } @else {
+        <mat-chip style="background-color: #c62828; color: white;" disabled>
+          Ausverkauft
+        </mat-chip>
+      }
+    </div>
+
+    <div style="margin-top: 20px;">
+      <ng-content></ng-content>
+    </div>
+  </mat-card-content>
+</mat-card>

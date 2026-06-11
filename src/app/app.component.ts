@@ -5,7 +5,7 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { DateAdapter, MatOption } from '@angular/material/core';
 import { MatIconButton, MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { AppHeaderComponent } from './components/app-header/app-header.component';
+import { NavbarComponent } from './components/navbar/navbar.component';
 import { MatDrawerContainer, MatDrawer } from '@angular/material/sidenav';
 import { RouterLink, RouterOutlet } from '@angular/router';
 
@@ -16,7 +16,7 @@ import { MatSelect } from '@angular/material/select';
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
-    imports: [MatIconButton, MatIcon, AppHeaderComponent, MatDrawerContainer, MatDrawer, MatButton, RouterLink, MatFormField, MatLabel, MatSelect, MatOption, RouterOutlet, TranslateModule]
+    imports: [MatIconButton, MatIcon, NavbarComponent, MatDrawerContainer, MatDrawer, MatButton, RouterLink, MatFormField, MatLabel, MatSelect, MatOption, RouterOutlet, TranslateModule]
 })
 export class AppComponent implements OnInit {
   private authService = inject(AppAuthService);

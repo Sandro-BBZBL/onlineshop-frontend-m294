@@ -1,16 +1,13 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import {HeaderService} from '../../service/header.service';
+import { HeaderService } from '../../service/header.service';
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
-import {Vehicle} from '../../dataaccess/vehicle';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatDialog} from '@angular/material/dialog';
-import {Router} from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
-import {ConfirmDialogComponent} from '../../components/confirm-dialog/confirm-dialog.component';
-import {VehicleUsage} from '../../dataaccess/vehicleUsage';
-import {BaseComponent} from '../../components/base/base.component';
-import {VehicleUsageService} from '../../service/vehicle-usage.service';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
+import { BaseComponent } from '../../components/base/base.component';
 import { IsInRoleDirective } from '../../dir/is.in.role.dir';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatButton } from '@angular/material/button';
@@ -18,27 +15,29 @@ import { MatIcon } from '@angular/material/icon';
 import { DecimalPipe, DatePipe } from '@angular/common';
 
 @Component({
-    selector: 'app-vehicle-usage-list',
-    templateUrl: './vehicle-usage-list.component.html',
-    styleUrls: ['./vehicle-usage-list.component.scss'],
-    imports: [IsInRoleDirective, MatToolbar, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, DecimalPipe, DatePipe, TranslateModule]
+  selector: 'app-order-history', // Exakt angepasst
+  templateUrl: './order-history.component.html', // Verweist auf dein neues HTML
+  styleUrls: ['./order-history.component.scss'], // Verweist auf dein neues SCSS
+  imports: [IsInRoleDirective, MatToolbar, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, DecimalPipe, DatePipe, TranslateModule]
 })
-export class VehicleUsageListComponent extends BaseComponent implements OnInit, AfterViewInit {
-  private vehicleUsageService = inject(VehicleUsageService);
+export class OrderHistoryComponent extends BaseComponent implements OnInit, AfterViewInit {
   private dialog = inject(MatDialog);
   private headerService = inject(HeaderService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
 
-  vehicleUsageDataSource = new MatTableDataSource<VehicleUsage>();
+  // Datenquelle strukturell vorbereitet (any dient als Platzhalter, bis das Order-Interface definiert ist)
+  orderDataSource = new MatTableDataSource<any>();
   @ViewChild(MatPaginator) paginator?: MatPaginator;
 
-  columns = ['fromDate', 'toDate', 'fromLocation', 'toLocation', 'km', 'vehicle', 'employee', 'text', 'actions'];
+  // Tabellenspalten für ein sinnvolles Bestellarchiv angepasst
+  columns = ['orderDate', 'orderNumber', 'totalPrice', 'status', 'actions'];
 
   public constructor() {
     super();
 
-    this.headerService.setPage('nav.usage');
+    // Setzt den dynamischen Seitentitel in der Navigationsleiste
+    this.headerService.setPage('nav.order_history');
   }
 
   async ngOnInit() {
@@ -47,25 +46,20 @@ export class VehicleUsageListComponent extends BaseComponent implements OnInit, 
 
   ngAfterViewInit() {
     if (this.paginator) {
-      this.vehicleUsageDataSource.paginator = this.paginator;
+      this.orderDataSource.paginator = this.paginator;
     }
   }
 
-  reloadData() {
-    this.vehicleUsageService.getList().subscribe(obj => {
-      this.vehicleUsageDataSource.data = obj;
-    });
+  async reloadData() {
+    // Hier wird später der OrderService angebunden, um die Bestellungen zu laden
   }
 
-  async edit(e: Vehicle) {
-    await this.router.navigate(['vehicle-usage', e.id]);
+  async viewDetails(order: any) {
+    // Ermöglicht später das Einsehen einer spezifischen Bestellung
   }
 
-  async add() {
-    await this.router.navigate(['vehicle-usage']);
-  }
-
-  delete(e: VehicleUsage) {
+  delete(order: any) {
+    // Stornierungs- oder Löschlogik über den Confirm-Dialog vorbereitet
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       maxWidth: '400px',
       data: {
@@ -76,17 +70,7 @@ export class VehicleUsageListComponent extends BaseComponent implements OnInit, 
 
     dialogRef.afterClosed().subscribe(dialogResult => {
       if (dialogResult === true) {
-        this.vehicleUsageService.delete(e.id).subscribe({
-          next: response => {
-            if (response.status === 200) {
-              this.snackBar.open(this.deletedMessage, this.closeMessage, {duration: 5000});
-              this.reloadData();
-            } else {
-              this.snackBar.open(this.deleteErrorMessage, this.closeMessage, {duration: 5000});
-            }
-          },
-          error: () => this.snackBar.open(this.deleteErrorMessage, this.closeMessage, {duration: 5000})
-        });
+        // Hier folgt später die Backend-Stornierung
       }
     });
   }
