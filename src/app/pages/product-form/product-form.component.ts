@@ -62,8 +62,8 @@ export class ProductFormComponent extends BaseComponent implements OnInit {
       this.productService.getProductById(this.productId).subscribe(prod => {
         this.objForm.patchValue({
           name: prod.name,
-          price: (prod as any).preis,    // Mappt 'preis' vom Backend auf 'price' im Formular
-          stock: (prod as any).bestand,  // Mappt 'bestand' vom Backend auf 'stock' im Formular
+          price: (prod as any).preis,
+          stock: (prod as any).bestand,
           categoryId: prod.category?.id
         });
       });
@@ -84,8 +84,8 @@ export class ProductFormComponent extends BaseComponent implements OnInit {
     // Exaktes Mapping an dein Java-Entity 'Product.java'
     const targetProduct: any = {
       name: this.objForm.value.name,
-      preis: Number(this.objForm.value.price),   // Backend erwartet 'preis'
-      bestand: Number(this.objForm.value.stock), // Backend erwartet 'bestand'
+      preis: Number(this.objForm.value.price),
+      bestand: Number(this.objForm.value.stock),
       category: selectedCategory ? { id: selectedCategory.id, name: selectedCategory.name } : null
     };
 

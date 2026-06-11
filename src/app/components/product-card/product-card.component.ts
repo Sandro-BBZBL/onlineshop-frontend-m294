@@ -12,6 +12,5 @@ import { Product } from '../../dataaccess/product';
   styleUrls: ['./product-card.component.scss']
 })
 export class ProductCardComponent {
-  // Aktiviert den Input für die Pages und verlangt zwingend ein Produkt-Objekt
   @Input({ required: true }) product!: Product;
 }

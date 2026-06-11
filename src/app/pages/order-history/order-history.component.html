@@ -31,9 +31,9 @@
     </table>
 
     <mat-paginator [pageSizeOptions]="[5, 10, 20]" 
-                   showFirstLastButtons 
-                   style="background: #1e1e1e; color: #fff;" 
-                   aria-label="Bestellseiten auswählen">
+      showFirstLastButtons 
+      style="background: #1e1e1e; color: #fff;" 
+      aria-label="Bestellseiten auswählen">
     </mat-paginator>
 
     <div *ngIf="orderDataSource.data.length === 0" style="padding: 24px; text-align: center; color: #bbb; background: #2a2a2a;">

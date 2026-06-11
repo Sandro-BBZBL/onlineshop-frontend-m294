@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { appCanActivate } from './guard/app.auth.guard';
-import { AppRoles } from '../app.roles'; // Lädt die Rollen aus der app.roles.ts
+import { AppRoles } from '../app.roles';
 
-// Imports deiner neuen Pages
+// Imports Pages
 import { ShopComponent } from './pages/shop/shop.component';
 import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 import { OrderHistoryComponent } from './pages/order-history/order-history.component';
