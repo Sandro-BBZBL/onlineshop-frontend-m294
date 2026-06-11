@@ -3,63 +3,58 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Order } from '../dataaccess/order';
+import { AppAuthService } from './app.auth.service'; // Dein echter Auth-Service!
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
   private http = inject(HttpClient);
+  private authService = inject(AppAuthService); // Jetzt typensicher injiziert!
 
-  // Der Endpoint für dein Backend lautet nun 'order' (Bestellungen)
-  public static readonly backendUrl = 'order';
+  public static readonly backendUrl = 'orders';
 
-  /**
-   * Holt die gesamte Bestellhistorie (GET)
-   */
   public getList(): Observable<Order[]> {
     return this.http.get<Order[]>(environment.backendBaseUrl + OrderService.backendUrl);
   }
 
-  /**
-   * Holt eine einzelne Bestellung anhand der ID (GET)
-   */
   public getOne(id: number): Observable<Order> {
     return this.http.get<Order>(environment.backendBaseUrl + OrderService.backendUrl + `/${id}`);
   }
 
-  /**
-   * Aktualisiert eine bestehende Bestellung (PUT)
-   */
   public update(order: Order): Observable<Order> {
     return this.http.put<Order>(environment.backendBaseUrl + OrderService.backendUrl + `/${order.id}`, order);
   }
 
-  /**
-   * Standard-Speichermethode für ein einzelnes Order-Objekt (POST)
-   */
   public save(order: Order): Observable<Order> {
     return this.http.post<Order>(environment.backendBaseUrl + OrderService.backendUrl, order);
   }
 
-  /**
-   * Löscht eine Bestellung (DELETE)
-   */
   public delete(id: number): Observable<HttpResponse<string>> {
     return this.http.delete<string>(environment.backendBaseUrl + OrderService.backendUrl + `/${id}`, { observe: 'response' });
   }
 
   /**
-   * WICHTIGE LOGIK-REGEL 4: Direkter Checkout für ein Produkt von der Detailseite.
-   * Schickt NUR ein Array mit productId und quantity, da das Backend den Rest 
-   * (Username, Datum, Gesamtpreis) selbst berechnet und absichert.
+   * Direkter Checkout für ein Produkt von der Detailseite.
    */
   public checkoutSingleProduct(productId: number, quantity: number): Observable<any> {
-    const orderPayload = [
-      {
-        productId: productId,
-        quantity: quantity
-      }
-    ];
+    
+    let aktuellerUser = 'unbekannt';
+    
+    // Wir holen uns die Claims aus dem Keycloak-Token über deinen Service
+    const claims = this.authService.getIdentityClaims();
+    if (claims && claims['preferred_username']) {
+      aktuellerUser = claims['preferred_username']; // Das ist dein echter Keycloak-Login-Name!
+    }
+
+    const orderPayload = {
+      productId: productId,
+      menge: quantity,
+      benutzername: aktuellerUser
+    };
+    
+    console.log('Sende echten Payload an POST /api/orders:', orderPayload);
+    
     return this.http.post<any>(environment.backendBaseUrl + OrderService.backendUrl, orderPayload);
   }
 }

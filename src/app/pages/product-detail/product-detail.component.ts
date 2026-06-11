@@ -1,17 +1,19 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../service/product.service';
+import { OrderService } from '../../service/order.service'; // 1. OrderService importieren
 import { Product } from '../../dataaccess/product';
 import { UntypedFormBuilder, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
-import { MatToolbar, MatToolbarRow } from '@angular/material/toolbar';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { AutofocusDirective } from '../../dir/autofocus-dir';
 import { TranslateModule } from '@ngx-translate/core';
+import { ProductCardComponent } from '../../components/product-card/product-card.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-product-detail',
@@ -20,8 +22,6 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrls: ['./product-detail.component.scss'],
   imports: [
     CommonModule,
-    MatToolbar,
-    MatToolbarRow,
     MatButton,
     MatIcon,
     FormsModule,
@@ -31,40 +31,54 @@ import { TranslateModule } from '@ngx-translate/core';
     MatInput,
     AutofocusDirective,
     MatHint,
-    TranslateModule
+    TranslateModule,
+    ProductCardComponent
   ]
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductService);
+  private orderService = inject(OrderService); // 2. OrderService injizieren
   private formBuilder = inject(UntypedFormBuilder);
   private snackBar = inject(MatSnackBar);
 
-  public product: Product | null = null;
+  public product = signal<Product | null>(null);
   public objForm!: UntypedFormGroup;
+  private routeSub!: Subscription;
 
   ngOnInit(): void {
-    const id = Number.parseInt(this.route.snapshot.paramMap.get('id') as string);
+    this.routeSub = this.route.paramMap.subscribe(params => {
+      const idParam = params.get('id');
+      if (!idParam) return;
 
-    this.productService.getProductById(id).subscribe({
-      next: (prod) => {
-        this.product = prod;
+      const id = Number.parseInt(idParam, 10);
+      if (Number.isNaN(id)) return;
 
-        // Formular initialisieren und an 'prod.bestand' anpassen
-        this.objForm = this.formBuilder.group({
-          quantity: [1, [
-            Validators.required, 
-            Validators.min(1), 
-            Validators.max(prod.bestand || 0) // FIX: Nutzt jetzt 'bestand' statt 'stock'
-          ]]
-        });
-      },
-      error: (err) => {
-        console.error('Fehler beim Laden des Produkts:', err);
-        this.snackBar.open('Produktdetails konnten nicht geladen werden.', 'Schliessen', { duration: 5000 });
-      }
+      this.productService.getProductById(id).subscribe({
+        next: (prod) => {
+          this.product.set(prod);
+
+          this.objForm = this.formBuilder.group({
+            quantity: [1, [
+              Validators.required, 
+              Validators.min(1), 
+              Validators.max(prod.bestand || 0)
+            ]]
+          });
+        },
+        error: (err) => {
+          console.error('Fehler beim Laden des Produkts:', err);
+          this.snackBar.open('Produktdetails konnten nicht geladen werden.', 'Schliessen', { duration: 5000 });
+        }
+      });
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.routeSub) {
+      this.routeSub.unsubscribe();
+    }
   }
 
   back(): void {
@@ -72,15 +86,24 @@ export class ProductDetailComponent implements OnInit {
   }
 
   orderProduct(): void {
-    if (this.objForm.invalid || !this.product) return;
+    const currentProduct = this.product();
+    if (this.objForm.invalid || !currentProduct) return;
 
-    const orderPayload = {
-      productId: this.product.id,
-      quantity: this.objForm.value.quantity
-    };
+    const quantity = this.objForm.value.quantity;
 
-    console.log('Bestellung wird abgeschickt:', orderPayload);
-    this.snackBar.open('Produkt erfolgreich bestellt! (Simulation)', 'Schliessen', { duration: 3000 });
-    this.router.navigate(['/shop']);
+    // 3. Echte Backend-Bestellung abschicken
+    this.orderService.checkoutSingleProduct(currentProduct.id, quantity).subscribe({
+      next: (response) => {
+        console.log('Bestellung erfolgreich im Backend verbucht:', response);
+        this.snackBar.open('Bestellung erfolgreich abgeschickt!', 'Schliessen', { duration: 3000 });
+        
+        // Nach erfolgreichem Kauf direkt in den Bestellverlauf (History) springen!
+        this.router.navigate(['/order-history']);
+      },
+      error: (err) => {
+        console.error('Fehler beim Bestellen des Produkts:', err);
+        this.snackBar.open('Bestellung fehlgeschlagen. Bitte versuche es erneut.', 'Schliessen', { duration: 4000 });
+      }
+    });
   }
 }

@@ -1,63 +1,51 @@
-<div>
-  <div>
-    <mat-toolbar color="primary">
-      <mat-toolbar-row>
-        <button (click)="back()" color="primary" mat-button style="color: white">
-          <mat-icon>arrow_back_ios</mat-icon>
-          Zurück zum Shop
-        </button>
-        <span class="toolbar-spacer"></span>
-      </mat-toolbar-row>
-    </mat-toolbar>
+<div class="detail-page-container" style="padding: 24px; max-width: 1000px; margin: 0 auto;">
+  
+  <div style="margin-bottom: 24px;">
+    <button (click)="back()" color="primary" mat-button style="color: white">
+      <mat-icon>arrow_back_ios</mat-icon> Zurück zum Shop
+    </button>
   </div>
 
-  @if (product) {
-    <div class="app-form" style="padding: 24px; max-width: 600px; margin: 0 auto;">
-      <div style="background: #2a2a2a; border-radius: 8px; padding: 24px; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-        
-        <h2 style="font-size: 2rem; margin-bottom: 8px; color: #ff4081;">{{ product.name }}</h2>
-        <p style="font-size: 1.1rem; color: #bbb; margin-bottom: 24px;">
-          Kategorie: <strong style="color: white;">{{ product.category?.name || 'Allgemein' }}</strong>
+  @if (product(); as prod) {
+    
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+      
+      <div style="flex: 1; min-width: 300px;">
+        <app-product-card [product]="prod"></app-product-card>
+      </div>
+
+      <div style="flex: 1; min-width: 300px; background: #2a2a2a; border-radius: 8px; padding: 24px; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <h2 style="font-size: 1.5rem; margin-top: 0; margin-bottom: 16px; color: #ff4081; font-weight: 500;">Direktbestellung</h2>
+        <p style="color: #bbb; font-size: 0.95rem; margin-bottom: 24px;">
+          Mit Klick auf den Button wird der Artikel sofort kostenpflichtig bestellt und in deinem Bestellverlauf registriert.
         </p>
 
-        <hr style="border: 0; border-top: 1px solid #444; margin-bottom: 24px;">
-
-        <div style="display: flex; justify-content: space-between; margin-bottom: 32px;">
-          <div>
-            <span style="color: #bbb; display: block; font-size: 0.9rem; text-transform: uppercase;">Preis</span>
-            <span style="font-size: 1.8rem; font-weight: bold; color: #4caf50;">CHF {{ product.preis }}</span>
-          </div>
-          <div style="text-align: right;">
-            <span style="color: #bbb; display: block; font-size: 0.9rem; text-transform: uppercase;">Verfügbarkeit</span>
-            <span style="font-size: 1.2rem;" [style.color]="(product.bestand || 0) > 0 ? '#4caf50' : '#f44336'">
-              {{ (product.bestand || 0) > 0 ? product.bestand + ' Stück an Lager' : 'Ausverkauft' }}
-            </span>
-          </div>
-        </div>
-
-        @if ((product.bestand || 0) > 0) {
+        @if ((prod.bestand || 0) > 0) {
           <form [formGroup]="objForm" (ngSubmit)="orderProduct()">
-            <div style="display: flex; gap: 16px; align-items: center;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
               
-              <mat-form-field style="width: 120px;">
+              <mat-form-field appearance="fill" style="width: 100%;">
                 <mat-label>Menge</mat-label>
-                <input matInput type="number" formControlName="quantity" min="1" [max]="product.bestand || 0" required>
+                <input matInput type="number" formControlName="quantity" min="1" [max]="prod.bestand || 0" required>
+                <mat-hint style="color: #aaa;">Maximal {{ prod.bestand }} Stück verfügbar</mat-hint>
               </mat-form-field>
 
-              <button type="submit" [disabled]="!objForm.valid" color="accent" mat-raised-button style="height: 54px; flex-grow: 1; font-size: 1.1rem;">
-                <mat-icon>shopping_cart</mat-icon> Jetzt bestellen
+              <button type="submit" [disabled]="!objForm.valid" color="accent" mat-raised-button style="height: 54px; font-size: 1.1rem; font-weight: bold; margin-top: 8px;">
+                <mat-icon>shopping_cart</mat-icon> Jetzt kaufen
               </button>
               
             </div>
           </form>
         } @else {
           <div style="background: #f4433622; border: 1px solid #f44336; padding: 16px; border-radius: 4px; text-align: center; color: #f44336;">
+            <mat-icon style="vertical-align: middle; margin-right: 8px;">error_outline</mat-icon>
             Dieses Produkt ist aktuell leider vergriffen und kann nicht bestellt werden.
           </div>
         }
-
       </div>
+
     </div>
+
   } @else {
     <div style="text-align: center; padding: 48px; color: white;">
       <h3>Produktdetails werden geladen...</h3>
