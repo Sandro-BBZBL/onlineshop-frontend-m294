@@ -3,14 +3,14 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Order } from '../dataaccess/order';
-import { AppAuthService } from './app.auth.service'; // Dein echter Auth-Service!
+import { AppAuthService } from './app.auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
   private http = inject(HttpClient);
-  private authService = inject(AppAuthService); // Jetzt typensicher injiziert!
+  private authService = inject(AppAuthService);
 
   public static readonly backendUrl = 'orders';
 
@@ -34,17 +34,12 @@ export class OrderService {
     return this.http.delete<string>(environment.backendBaseUrl + OrderService.backendUrl + `/${id}`, { observe: 'response' });
   }
 
-  /**
-   * Direkter Checkout für ein Produkt von der Detailseite.
-   */
   public checkoutSingleProduct(productId: number, quantity: number): Observable<any> {
-    
     let aktuellerUser = 'unbekannt';
     
-    // Wir holen uns die Claims aus dem Keycloak-Token über deinen Service
     const claims = this.authService.getIdentityClaims();
     if (claims && claims['preferred_username']) {
-      aktuellerUser = claims['preferred_username']; // Das ist dein echter Keycloak-Login-Name!
+      aktuellerUser = claims['preferred_username'];
     }
 
     const orderPayload = {
@@ -57,4 +52,8 @@ export class OrderService {
     
     return this.http.post<any>(environment.backendBaseUrl + OrderService.backendUrl, orderPayload);
   }
-}
+  
+  public getOrdersByUsername(benutzername: string): Observable<Order[]> {
+    return this.http.get<Order[]>(`${environment.backendBaseUrl}${OrderService.backendUrl}/user/${benutzername}`);
+  }
+} 

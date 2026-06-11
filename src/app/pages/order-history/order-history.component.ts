@@ -1,5 +1,8 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { HeaderService } from '../../service/header.service';
+import { OrderService } from '../../service/order.service'; 
+import { AppAuthService } from '../../service/app.auth.service'; 
+import { Order } from '../../dataaccess/order'; 
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
@@ -12,31 +15,50 @@ import { IsInRoleDirective } from '../../dir/is.in.role.dir';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe, DatePipe, CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-order-history', // Exakt angepasst
-  templateUrl: './order-history.component.html', // Verweist auf dein neues HTML
-  styleUrls: ['./order-history.component.scss'], // Verweist auf dein neues SCSS
-  imports: [IsInRoleDirective, MatToolbar, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, DecimalPipe, DatePipe, TranslateModule]
+  selector: 'app-order-history',
+  standalone: true,
+  templateUrl: './order-history.component.html',
+  styleUrls: ['./order-history.component.scss'],
+  imports: [
+    CommonModule,
+    IsInRoleDirective, 
+    MatToolbar, 
+    MatButton, 
+    MatIcon, 
+    MatTable, 
+    MatColumnDef, 
+    MatHeaderCellDef, 
+    MatHeaderCell, 
+    MatCellDef, 
+    MatCell, 
+    MatHeaderRowDef, 
+    MatHeaderRow, 
+    MatRowDef, 
+    MatRow, 
+    MatPaginator, 
+    DecimalPipe, 
+    DatePipe, 
+    TranslateModule
+  ]
 })
 export class OrderHistoryComponent extends BaseComponent implements OnInit, AfterViewInit {
   private dialog = inject(MatDialog);
   private headerService = inject(HeaderService);
-  private router = inject(Router);
+  private orderService = inject(OrderService); 
+  private authService = inject(AppAuthService); 
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
-  // Datenquelle strukturell vorbereitet (any dient als Platzhalter, bis das Order-Interface definiert ist)
-  orderDataSource = new MatTableDataSource<any>();
+  columns = ['id', 'orderDate', 'totalPrice', 'actions'];
+  orderDataSource = new MatTableDataSource<Order>();
+  
   @ViewChild(MatPaginator) paginator?: MatPaginator;
-
-  // Tabellenspalten für ein sinnvolles Bestellarchiv angepasst
-  columns = ['orderDate', 'orderNumber', 'totalPrice', 'status', 'actions'];
 
   public constructor() {
     super();
-
-    // Setzt den dynamischen Seitentitel in der Navigationsleiste
     this.headerService.setPage('nav.order_history');
   }
 
@@ -51,26 +73,57 @@ export class OrderHistoryComponent extends BaseComponent implements OnInit, Afte
   }
 
   async reloadData() {
-    // Hier wird später der OrderService angebunden, um die Bestellungen zu laden
+    let username = 'unbekannt';
+    
+    const claims = this.authService.getIdentityClaims();
+    if (claims && claims['preferred_username']) {
+      username = claims['preferred_username'];
+    }
+
+    if (username === 'unbekannt') {
+      this.snackBar.open('Benutzer nicht identifiziert. Verlauf nicht ladbar.', 'Schließen', { duration: 4000 });
+      return;
+    }
+
+    this.orderService.getOrdersByUsername(username).subscribe({
+      next: (orders) => {
+        // NEU: Loggt das Ergebnis direkt in die Browser-Konsole (F12)
+        console.log('Backend-Antwort für User "' + username + '":', orders);
+        
+        this.orderDataSource.data = orders;
+      },
+      error: (err) => {
+        console.error('Fehler beim Laden des Bestellverlaufs:', err);
+        this.snackBar.open('Fehler beim Laden des Bestellverlaufs.', 'Schließen', { duration: 4000 });
+      }
+    });
   }
 
-  async viewDetails(order: any) {
-    // Ermöglicht später das Einsehen einer spezifischen Bestellung
+  viewDetails(order: Order): void {
+    this.router.navigate(['/orders', order.id]);
   }
 
-  delete(order: any) {
-    // Stornierungs- oder Löschlogik über den Confirm-Dialog vorbereitet
+  delete(order: Order) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       maxWidth: '400px',
       data: {
         title: 'dialogs.title_delete',
-        message: 'dialogs.message_delete'
+        message: 'Möchtest du diese Bestellung wirklich stornieren?'
       }
     });
 
     dialogRef.afterClosed().subscribe(dialogResult => {
-      if (dialogResult === true) {
-        // Hier folgt später die Backend-Stornierung
+      if (dialogResult === true && order.id) {
+        this.orderService.delete(order.id).subscribe({
+          next: () => {
+            this.snackBar.open('Bestellung erfolgreich storniert.', 'Schließen', { duration: 3000 });
+            this.reloadData(); 
+          },
+          error: (err) => {
+            console.error('Fehler beim Stornieren:', err);
+            this.snackBar.open('Stornierung fehlgeschlagen.', 'Schließen', { duration: 4000 });
+          }
+        });
       }
     });
   }
