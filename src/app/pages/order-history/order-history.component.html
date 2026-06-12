@@ -1,44 +1,12 @@
 <div style="padding: 24px; color: #fff;">
-  <h2>Mein Bestellverlauf</h2>
-  <p style="color: #ccc;">Hier siehst du alle deine vergangenen Einkäufe auf einen Blick.</p>
+  <h2>{{ isAdmin ? 'Alle Bestellungen (Admin)' : 'Mein Bestellverlauf' }}</h2>
+  <p style="color: #ccc;">
+    {{ isAdmin ? 'Hier siehst du alle Bestellungen des gesamten Shops.' : 'Hier siehst du alle deine vergangenen Einkäufe auf einen Blick.' }}
+  </p>
 
-  <div class="mat-elevation-z8" style="background: #2a2a2a; border-radius: 8px; overflow: hidden; margin-top: 16px; border: 1px solid #444;">
-    
-    <table mat-table [dataSource]="orderDataSource" style="width: 100%; background: #2a2a2a;">
-
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef style="color: #ff4081; font-weight: bold; background: #1e1e1e;"> Bestell-Nr. </th>
-        <td mat-cell *matCellDef="let element" style="color: #ffffff; background: #2a2a2a;"> #{{element.id}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="orderDate">
-        <th mat-header-cell *matHeaderCellDef style="color: #ff4081; font-weight: bold; background: #1e1e1e;"> Datum </th>
-        <td mat-cell *matCellDef="let element" style="color: #ffffff; background: #2a2a2a;"> 
-          {{ (element.datum || element.orderDate || '11.06.2026, 09:35') }} 
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="totalPrice">
-        <th mat-header-cell *matHeaderCellDef style="color: #ff4081; font-weight: bold; background: #1e1e1e;"> Artikel (Menge) </th>
-        <td mat-cell *matCellDef="let element" style="color: #ffffff; background: #2a2a2a; font-weight: 500;"> 
-          {{ element.product?.name || 'Gaming Monitor' }} ({{ element.menge || 1 }}x)
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="columns" style="background: #1e1e1e;"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns;" style="border-bottom: 1px solid #444;"></tr>
-
-    </table>
-
-    <mat-paginator [pageSizeOptions]="[5, 10, 20]" 
-      showFirstLastButtons 
-      style="background: #1e1e1e; color: #fff;" 
-      aria-label="Bestellseiten auswählen">
-    </mat-paginator>
-
-    <div *ngIf="orderDataSource.data.length === 0" style="padding: 24px; text-align: center; color: #bbb; background: #2a2a2a;">
-      Du hast bisher noch keine Bestellungen aufgegeben.
-    </div>
-
-  </div>
+  <app-order-table 
+    [orders]="loadedOrders" 
+    [isAdmin]="isAdmin">
+  </app-order-table>
+  
 </div>
