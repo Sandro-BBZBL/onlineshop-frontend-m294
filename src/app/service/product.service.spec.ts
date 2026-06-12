@@ -1,102 +1,102 @@
-import { TestBed } from '@angular/core/testing';
+import '@angular/compiler';
+import { EnvironmentInjector, runInInjectionContext } from '@angular/core';
+import { ProductService } from './product.service';
+import { Product, Category } from '../dataaccess/product';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { of } from 'rxjs';
 
-import { VehicleService } from './vehicle.service';
-import { expect } from 'vitest';
-import { provideHttpClient } from '@angular/common/http';
-import { Vehicle } from '../dataaccess/vehicle';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
-import { environment } from '../../environments/environment';
-
-describe('VehicleService', () => {
-  let service: VehicleService;
-  let httpMock: HttpTestingController;
-
-  const fakeVehicles: Vehicle[] = [
-    {
-      id: 1,
-      vehicleType: 'CAR',
-      description: 'Test vehicle 1',
-      licence: '123',
-    },
-    {
-      id: 2,
-      vehicleType: 'CAR',
-      description: 'Test vehicle 2',
-      licence: '456',
-    },
-  ];
+describe('ProductService (Pure Unit Test)', () => {
+  let service: ProductService;
+  let mockHttpClient: any;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-      teardown: { destroyAfterEach: true },
+    // 1. Mock für den HttpClient bauen
+    mockHttpClient = {
+      get: vi.fn(),
+      post: vi.fn(),
+      delete: vi.fn()
+    };
+
+    // 2. Einen minimalen, leeren Angular-Injector simulieren
+    const mockInjector = {
+      get: vi.fn((token) => {
+        // Wenn Angular nach dem HttpClient fragt, geben wir unseren Mock zurück
+        return mockHttpClient;
+      })
+    } as unknown as EnvironmentInjector;
+
+    // 3. Den Service INNERHALB eines künstlichen Injection-Contexts instanziieren
+    runInInjectionContext(mockInjector, () => {
+      service = new ProductService();
     });
-    service = TestBed.inject(VehicleService);
-    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  it('should be created', () => {
+  it('sollte den Service erfolgreich erstellen', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should return a list of vehicles', async () => {
-    service.getList().subscribe({
-      next: (data) => {
-        expect(data).toHaveLength(fakeVehicles.length);
-      },
+  it('sollte Kategorien laden (getCategories)', () => {
+    const mockCategories: Category[] = [{ id: 1, name: 'Elektronik' }];
+    mockHttpClient.get.mockReturnValue(of(mockCategories));
+
+    service.getCategories().subscribe(categories => {
+      expect(categories).toEqual(mockCategories);
     });
 
-    const req = httpMock.expectOne(environment.backendBaseUrl + VehicleService.backendUrl);
-    expect(req.request.method).toBe('GET');
-    req.flush(fakeVehicles);
+    expect(mockHttpClient.get).toHaveBeenCalledWith('http://localhost:8081/api/categories');
   });
 
-  it('should create a new vehicle', async () => {
-    const newVehicle: Vehicle = {
-      id: 3,
-      vehicleType: 'CAR',
-      description: 'Test vehicle 3',
-      licence: '789',
-    };
+  it('sollte ein einzelnes Produkt laden (getProductById)', () => {
+    const mockProduct: Product = { id: 1, name: 'Laptop', preis: 1000, bestand: 10 };
+    mockHttpClient.get.mockReturnValue(of(mockProduct));
 
-    service.save(newVehicle).subscribe({
-      next: (department) => {
-        expect(department).toEqual(newVehicle);
-      },
+    service.getProductById(1).subscribe(product => {
+      expect(product).toEqual(mockProduct);
     });
 
-    const req = httpMock.expectOne(environment.backendBaseUrl + VehicleService.backendUrl);
-    expect(req.request.method).toBe('POST');
-    req.flush(newVehicle);
+    expect(mockHttpClient.get).toHaveBeenCalledWith('http://localhost:8081/api/products/1');
   });
 
-  it('should update an vehicle', async () => {
-    const vehicle = fakeVehicles[0];
-    vehicle.description = 'Updated Vehicle';
+  it('sollte ein Produkt erstellen (createProduct)', () => {
+    const newProduct = { name: 'Maus', preis: 25, bestand: 100 };
+    mockHttpClient.post.mockReturnValue(of({ success: true }));
 
-    service.update(vehicle).subscribe({
-      next: (vehicle) => {
-        expect(vehicle.description).toEqual('Updated Vehicle');
-      },
+    service.createProduct(newProduct).subscribe(res => {
+      expect(res).toEqual({ success: true });
     });
 
-    const req = httpMock.expectOne(environment.backendBaseUrl + `${VehicleService.backendUrl}/${fakeVehicles[0].id}`);
-    expect(req.request.method).toBe('PUT');
-    req.flush(vehicle);
+    expect(mockHttpClient.post).toHaveBeenCalledWith('http://localhost:8081/api/products', newProduct);
   });
 
-  it('should delete an existing vehicle', async () => {
-    service.delete(fakeVehicles[0].id).subscribe({
-      next: (response) => {
-        expect(response.status).toBe(200);
-      },
+  it('sollte alle Produkte laden via getProducts()', () => {
+    const mockProducts: Product[] = [{ id: 1, name: 'Tastatur', preis: 50, bestand: 20 }];
+    mockHttpClient.get.mockReturnValue(of(mockProducts));
+
+    service.getProducts().subscribe(products => {
+      expect(products).toEqual(mockProducts);
     });
 
-    const req = httpMock.expectOne(environment.backendBaseUrl + `${VehicleService.backendUrl}/${fakeVehicles[0].id}`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush(fakeVehicles[0].id);
+    expect(mockHttpClient.get).toHaveBeenCalledWith('http://localhost:8081/api/products');
+  });
+
+  it('sollte alle Produkte laden via getList()', () => {
+    const mockProducts: Product[] = [{ id: 1, name: 'Monitor', preis: 200, bestand: 5 }];
+    mockHttpClient.get.mockReturnValue(of(mockProducts));
+
+    service.getList().subscribe(products => {
+      expect(products).toEqual(mockProducts);
+    });
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith('http://localhost:8081/api/products');
+  });
+
+  it('sollte ein Produkt löschen (deleteProduct)', () => {
+    mockHttpClient.delete.mockReturnValue(of({ deleted: true }));
+
+    service.deleteProduct(99).subscribe(res => {
+      expect(res).toEqual({ deleted: true });
+    });
+
+    expect(mockHttpClient.delete).toHaveBeenCalledWith('http://localhost:8081/api/products/99');
   });
 });
